@@ -1,0 +1,14 @@
+{
+  "name": "printwatch-pro",
+  "version": "1.0.0",
+  "description": "Sistema de monitoreo de impresoras",
+  "private": true,
+  "devDependencies": {
+    "tailwindcss": "^3.4.1",
+    "@tailwindcss/forms": "^0.5.7"
+  },
+  "scripts": {
+    "build:css": "tailwindcss -i ./app/static/css/input.css -o ./app/static/css/output.css --minify",
+    "watch:css": "tailwindcss -i ./app/static/css/input.css -o ./app/static/css/output.css --watch"
+  }
+}

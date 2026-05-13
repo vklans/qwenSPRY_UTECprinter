@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}PrintWatch Pro{% endblock %}</title>
+    
+    <!-- Tailwind CSS compilado -->
+    <link href="{{ url_for('static', filename='css/output.css') }}" rel="stylesheet">
+    
+    <!-- Plotly.js para gráficas -->
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    
+    <!-- Alpine.js para interactividad ligera -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="h-full bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100"
+      x-data="{ sidebarOpen: false, darkMode: localStorage.getItem('darkMode') === 'true' }"
+      :class="{ 'dark': darkMode }"
+      x-init="$watch('darkMode', val => localStorage.setItem('darkMode', val))">
+
+    <!-- Overlay para móvil -->
+    <div x-show="sidebarOpen" 
+         @click="sidebarOpen = false"
+         x-transition:enter="transition-opacity ease-linear duration-300"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition-opacity ease-linear duration-300"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         class="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+         style="display: none;"></div>
+
+    <!-- Sidebar -->
+    <aside :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
+           class="fixed inset-y-0 left-0 z-50 w-64 bg-primary-900 dark:bg-gray-800 text-white transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0">
+        
+        <!-- Logo -->
+        <div class="flex items-center justify-between h-16 px-6 bg-primary-800 dark:bg-gray-900">
+            <div class="flex items-center space-x-3">
+                <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/>
+                    <path d="M6 14h12v8H6z"/>
+                </svg>
+                <span class="text-xl font-bold">PrintWatch Pro</span>
+            </div>
+            <button @click="sidebarOpen = false" class="lg:hidden">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+
+        <!-- Navegación -->
+        <nav class="mt-6 px-4 space-y-2">
+            <!-- Dashboard -->
+            <a href="{{ url_for('dashboard.index') }}" 
+               class="flex items-center px-4 py-3 rounded-lg hover:bg-primary-700 dark:hover:bg-gray-700 transition-colors {% if request.endpoint == 'dashboard.index' %}bg-primary-700{% endif %}">
+                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                </svg>
+                Dashboard
+            </a>
+
+            <!-- Papel -->
+            <a href="{{ url_for('paper.index') }}" 
+               class="flex items-center px-4 py-3 rounded-lg hover:bg-primary-700 dark:hover:bg-gray-700 transition-colors {% if 'paper' in request.endpoint %}bg-primary-700{% endif %}">
+                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+                Papel
+                {% if active_alerts and active_alerts > 0 %}
+                <span class="ml-auto bg-red-500 text-xs font-bold px-2 py-1 rounded-full">{{ active_alerts }}</span>
+                {% endif %}
+            </a>
+
+            <!-- Tóner -->
+            <a href="{{ url_for('toner.index') }}" 
+               class="flex items-center px-4 py-3 rounded-lg hover:bg-primary-700 dark:hover:bg-gray-700 transition-colors {% if 'toner' in request.endpoint %}bg-primary-700{% endif %}">
+                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"/>
+                </svg>
+                Tóner
+            </a>
+
+            <!-- Separador -->
+            <div class="border-t border-primary-700 dark:border-gray-700 my-4"></div>
+
+            <!-- Stock Papel -->
+            <a href="{{ url_for('stock_paper.index') }}" 
+               class="flex items-center px-4 py-3 rounded-lg hover:bg-primary-700 dark:hover:bg-gray-700 transition-colors {% if 'stock_paper' in request.endpoint %}bg-primary-700{% endif %}">
+                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                </svg>
+                Stock Papel
+            </a>
+
+            <!-- Stock Tóner -->
+            <a href="{{ url_for('stock_toner.index') }}" 
+               class="flex items-center px-4 py-3 rounded-lg hover:bg-primary-700 dark:hover:bg-gray-700 transition-colors {% if 'stock_toner' in request.endpoint %}bg-primary-700{% endif %}">
+                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                </svg>
+                Stock Tóner
+            </a>
+
+            <!-- Log Impresiones -->
+            <a href="{{ url_for('print_jobs.index') }}" 
+               class="flex items-center px-4 py-3 rounded-lg hover:bg-primary-700 dark:hover:bg-gray-700 transition-colors {% if 'print_jobs' in request.endpoint %}bg-primary-700{% endif %}">
+                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                </svg>
+                Log Impresiones
+            </a>
+
+            <!-- Gráficas -->
+            <a href="{{ url_for('charts.consumption') }}" 
+               class="flex items-center px-4 py-3 rounded-lg hover:bg-primary-700 dark:hover:bg-gray-700 transition-colors {% if 'charts' in request.endpoint %}bg-primary-700{% endif %}">
+                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                </svg>
+                Gráficas
+            </a>
+
+            <!-- Exportar -->
+            <a href="{{ url_for('export.index') }}" 
+               class="flex items-center px-4 py-3 rounded-lg hover:bg-primary-700 dark:hover:bg-gray-700 transition-colors {% if 'export' in request.endpoint %}bg-primary-700{% endif %}">
+                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                </svg>
+                Exportar
+            </a>
+
+            <!-- Separador -->
+            <div class="border-t border-primary-700 dark:border-gray-700 my-4"></div>
+
+            <!-- Admin (solo admins) -->
+            {% if current_user.role in ['admin', 'superadmin'] %}
+            <div x-data="{ adminOpen: false }">
+                <button @click="adminOpen = !adminOpen" 
+                        class="flex items-center justify-between w-full px-4 py-3 rounded-lg hover:bg-primary-700 dark:hover:bg-gray-700 transition-colors">
+                    <div class="flex items-center">
+                        <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        </svg>
+                        Administración
+                    </div>
+                    <svg :class="adminOpen ? 'rotate-90' : ''" class="w-4 h-4 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                    </svg>
+                </button>
+                <div x-show="adminOpen" class="ml-4 mt-2 space-y-1" style="display: none;">
+                    <a href="{{ url_for('admin_printers.list') }}" class="block px-4 py-2 text-sm rounded hover:bg-primary-600">Impresoras</a>
+                    <a href="{{ url_for('admin_locations.list') }}" class="block px-4 py-2 text-sm rounded hover:bg-primary-600">Ubicaciones</a>
+                    <a href="{{ url_for('admin_users.list') }}" class="block px-4 py-2 text-sm rounded hover:bg-primary-600">Usuarios</a>
+                    <a href="{{ url_for('admin_config.index') }}" class="block px-4 py-2 text-sm rounded hover:bg-primary-600">Configuración</a>
+                    <a href="{{ url_for('admin_audit.index') }}" class="block px-4 py-2 text-sm rounded hover:bg-primary-600">Auditoría</a>
+                </div>
+            </div>
+            {% endif %}
+        </nav>
+
+        <!-- Toggle Dark Mode -->
+        <div class="absolute bottom-4 left-4 right-4">
+            <button @click="darkMode = !darkMode" 
+                    class="flex items-center justify-center w-full px-4 py-2 bg-primary-700 dark:bg-gray-700 rounded-lg hover:bg-primary-600 transition-colors">
+                <svg x-show="!darkMode" class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+                </svg>
+                <svg x-show="darkMode" class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+                </svg>
+                <span x-text="darkMode ? 'Modo Claro' : 'Modo Oscuro'"></span>
+            </button>
+        </div>
+    </aside>
+
+    <!-- Contenido Principal -->
+    <div class="flex-1 flex flex-col overflow-hidden">
+        
+        <!-- Topbar -->
+        <header class="flex items-center justify-between h-16 px-6 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+            <!-- Botón menú móvil -->
+            <button @click="sidebarOpen = true" class="lg:hidden">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                </svg>
+            </button>
+
+            <!-- Breadcrumb -->
+            <div class="hidden md:flex items-center text-sm text-gray-500 dark:text-gray-400">
+                {% block breadcrumb %}{% endblock %}
+            </div>
+
+            <!-- Notificaciones y Usuario -->
+            <div class="flex items-center space-x-4">
+                <!-- Campana de notificaciones -->
+                <div x-data="notificationPolling()" x-init="init()" class="relative">
+                    <button @click="toggleDropdown()" class="relative p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                        </svg>
+                        <span x-show="count > 0" 
+                              class="absolute top-1 right-1 inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-red-500 rounded-full"
+                              x-text="count"></span>
+                    </button>
+
+                    <!-- Dropdown de notificaciones -->
+                    <div x-show="dropdownOpen" 
+                         @click.away="dropdownOpen = false"
+                         class="absolute right-0 mt-2 w-80 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-50"
+                         style="display: none;">
+                        <div class="p-4 border-b border-gray-200 dark:border-gray-700">
+                            <h3 class="font-semibold">Notificaciones Activas</h3>
+                        </div>
+                        <div class="max-h-96 overflow-y-auto">
+                            <template x-for="notif in notifications" :key="notif.id">
+                                <div class="p-4 border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">
+                                    <div class="flex items-start justify-between">
+                                        <div class="flex-1">
+                                            <p class="font-medium" x-text="notif.title"></p>
+                                            <p class="text-sm text-gray-600 dark:text-gray-400" x-text="notif.message"></p>
+                                            <p class="text-xs text-gray-500 mt-1" x-text="notif.printer_code + ' - ' + notif.created_at"></p>
+                                        </div>
+                                        <button @click="dismiss(notif.id)" class="ml-2 text-gray-400 hover:text-gray-600">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
+                            </template>
+                            <div x-show="notifications.length === 0" class="p-4 text-center text-gray-500">
+                                No hay notificaciones activas
+                            </div>
+                        </div>
+                        <div class="p-4 border-t border-gray-200 dark:border-gray-700">
+                            <a href="{{ url_for('notifications.history') }}" class="text-sm text-primary-600 hover:text-primary-700">Ver historial completo →</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Perfil de usuario -->
+                <div class="flex items-center space-x-3">
+                    <div class="text-right hidden md:block">
+                        <p class="text-sm font-medium">{{ current_user.full_name }}</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">{{ current_user.role }}</p>
+                    </div>
+                    <div class="w-10 h-10 bg-primary-500 rounded-full flex items-center justify-center text-white font-bold">
+                        {{ current_user.full_name[0].upper() }}
+                    </div>
+                    <a href="{{ url_for('auth.logout') }}" class="text-sm text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        </header>
+
+        <!-- Contenido principal con scroll -->
+        <main class="flex-1 overflow-y-auto p-6">
+            <!-- Flash messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <div class="mb-6 space-y-2">
+                        {% for category, message in messages %}
+                            <div class="p-4 rounded-lg {% if category == 'success' %}bg-green-100 text-green-800{% elif category == 'error' %}bg-red-100 text-red-800{% else %}bg-blue-100 text-blue-800{% endif %}">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+
+            <!-- Contenido de la página -->
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+
+    <!-- Popups de notificaciones -->
+    <div id="notification-popups" class="fixed bottom-4 right-4 z-50 space-y-2"></div>
+
+    <!-- Scripts -->
+    <script src="{{ url_for('static', filename='js/notifications.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>
