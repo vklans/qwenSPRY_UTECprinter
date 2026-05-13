@@ -1,59 +1,55 @@
-```
-# Dependencies
-printwatch_pro/
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv
 
-# Logs and temp files
-*.log
-*.tmp
+# Base de datos
+data/*.db
+data/*.db-journal
+data/*.db-wal
+data/*.db-shm
+
+# Logs
+logs/*.log
+
+# Tailwind compilado
+app/static/css/output.css
+
+# Exports generados
+exports/*.csv
+exports/*.xlsx
+exports/*.pdf
+
+# IDE
+.vscode/
+.idea/
 *.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
 
 # Environment
 .env
 .env.local
-.env.*
 
-# Editors
-.vscode/
-.idea/
+# Node modules (solo para Tailwind build)
+node_modules/
 
-# OS generated files
-.DS_Store
-Thumbs.db
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
 
-# Python
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-.Python
-*.so
-
-# Build artifacts
-build/
-dist/
-*.egg-info/
-
-# Compression files
-*.zip
-*.gz
-*.tar
-*.tgz
-*.bz2
-*.xz
-*.7z
-*.rar
-*.zst
-*.lz4
-*.lzh
-*.cab
-*.arj
-*.rpm
-*.deb
-*.Z
-*.lz
-*.lzo
-*.tar.gz
-*.tar.bz2
-*.tar.xz
-*.tar.zst
-```
+# Secrets
+*.pem
+*.key
+service_account.json
